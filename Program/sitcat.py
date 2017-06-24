@@ -296,7 +296,7 @@ def run():
         far_away += 1
         h = -1
         relax_time += 2.5
-        if relax_time > t:
+        if relax_time > t or t - relax_time >= 60 * 60:
           relax_time = t
       led('flashing' if t - relax_time >= 20 * 60 else 'off') # relax after 20 minutes studying ...
       if mode == 0:
