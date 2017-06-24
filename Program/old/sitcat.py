@@ -5,7 +5,7 @@ sitcat.py, by Wangs, May~June 2017
   Ultrasonic, DigitalDisplay, Temperature functions are written by Bob Wang
 '''
 
-import os, glob, time, pickle, signal, re, traceback
+import os, glob, time, pickle, signal, re
 from threading import Thread
 import RPi.GPIO as GPIO
 
@@ -149,6 +149,7 @@ def get_distance():
 
 #----------------------------------------------------------
 
+
 mode, beep, safe_dist, show_days = 0, False, 50, 0
 counts = [ [0, 0] for _ in range(8) ]
 
@@ -199,7 +200,7 @@ def led(status):
 
 def on_right_key(*args):
   '''
-  Called while left key pressed
+  Called while right key pressed
   '''
   global mode, show_safe
   buzz()
@@ -209,15 +210,15 @@ def on_right_key(*args):
 
 def on_left_key(*args):
   '''
-  Called while right key pressed
+  Called while left key pressed
   '''
   global beep, safe_dist, show_safe, show_days
   buzz()
   if mode == 0:
     beep = not beep
     if beep:
-      buzz()
-      time.sleep(0.01)
+      for i in range(5):
+        buzz()
   elif mode == 1:
     safe_dist = get_distance()
     show_safe = 3
@@ -238,18 +239,20 @@ def init():
   GPIO.setup(PINS.BUZZER, GPIO.OUT, initial = GPIO.HIGH)           # Buzzer 
   GPIO.setup(PINS.LED_RED, GPIO.OUT, initial = GPIO.HIGH)          # Red LED
   GPIO.setup(PINS.LED_YELLOW, GPIO.OUT, initial = GPIO.HIGH)       # Yellow LED
+
   GPIO.setup(PINS.TACT_LEFT, GPIO.IN, pull_up_down = GPIO.PUD_UP)  # Left key
   GPIO.add_event_detect(PINS.TACT_LEFT, GPIO.FALLING, callback = on_left_key, bouncetime = 500)
+  signal.signal(signal.SIGUSR1, on_left_key)                       # SIGUSR1 as left key
   GPIO.setup(PINS.TACT_RIGHT, GPIO.IN, pull_up_down = GPIO.PUD_UP) # Right Key
   GPIO.add_event_detect(PINS.TACT_RIGHT, GPIO.FALLING, callback = on_right_key, bouncetime = 500)
+  signal.signal(signal.SIGUSR2, on_right_key)                      # SIGUSR2 as right key
+
   display = DigitalDisplay()
 
   temperature = get_temperature()
   print 'Current temperature is', temperature, '*C.'
   sound_speed = 33100 + (60 * temperature)
   print 'Current speed of sound is', sound_speed, 'cm/s.'
-  signal.signal(signal.SIGUSR1, on_left_key)
-  signal.signal(signal.SIGUSR2, on_right_key)
 
 def done():
   '''
@@ -269,6 +272,7 @@ def run():
     relax_time = time.time()
     yday = time.localtime().tm_yday
     show_safe = 3
+    far_away = 0
     h = 0
     while True:
       t = time.time()
@@ -279,6 +283,7 @@ def run():
         save()
       d = get_distance()
       if d <= safe_dist + 30:
+        far_away /= 10
         counts[0][1] += 1
         if d >= safe_dist:
           counts[0][0] += 1
@@ -288,15 +293,14 @@ def run():
           if beep and h > 1:
             buzz()
       else:
+        far_away += 1
+        h = -1
         relax_time += 2.5
         if relax_time > t:
           relax_time = t
       led('flashing' if t - relax_time >= 20 * 60 else 'off') # relax after 20 minutes studying ...
       if mode == 0:
-        if h > 1:
-          s = '%4d' % (d - safe_dist)
-        else:
-          s = ' .'
+        s = '%4d' % (d - safe_dist) if h > 1 else '    ' if h < 0 else ' .   '
       elif mode == 1:
         if show_safe > 0:
           s = '=%3d' % safe_dist
@@ -314,6 +318,8 @@ def run():
             c1 += j
           score = c0 * 100 / c1
           s = '%d%3d' % (show_days, score)
+      if far_away > 120:
+        s = '    '
       display.show(s)
       print '    %s [%-4s] %3dcm %ds %s    \r' % (time.ctime(), s, d, t - relax_time, counts[0]),
       os.sys.stdout.flush()
@@ -322,12 +328,11 @@ def run():
         time.sleep(t)
   except KeyboardInterrupt:
     print
-  except:
-    traceback.print_exc()
 
 init()
 load()
 run()
 save()
 done()
+
 

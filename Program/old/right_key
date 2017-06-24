@@ -1,0 +1,2 @@
+killall -USR2 sitcat.py
+
