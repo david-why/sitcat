@@ -135,7 +135,7 @@ def run():
   '''
   Main loop
   '''
-  global mode, beep, safe_dist, show_safe, show_days, counts
+  global show_safe
   try:
     relax_time = time.time()
     yday = time.localtime().tm_yday
