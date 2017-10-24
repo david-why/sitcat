@@ -235,7 +235,7 @@ def init():
   GPIO.cleanup()
   GPIO.setmode(GPIO.BCM)
   GPIO.setup(PINS.GPIO_TRIGGER, GPIO.OUT, initial = GPIO.LOW)      # Ultrasonic Trigger
-  GPIO.setup(PINS.GPIO_ECHO, GPIO.IN)                              # Ultrasonic Echo
+  GPIO.setup(PINS.GPIO_ECHO, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)# Ultrasonic Echo
   GPIO.setup(PINS.BUZZER, GPIO.OUT, initial = GPIO.HIGH)           # Buzzer 
   GPIO.setup(PINS.LED_RED, GPIO.OUT, initial = GPIO.HIGH)          # Red LED
   GPIO.setup(PINS.LED_YELLOW, GPIO.OUT, initial = GPIO.HIGH)       # Yellow LED
