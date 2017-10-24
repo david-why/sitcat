@@ -33,9 +33,9 @@ def buzz():
   GPIO.output(BUZZER, GPIO.HIGH)
 
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(GPIO_TRIGGER, GPIO.OUT, initial = GPIO.LOW) # Ultrasonic Trigger
-GPIO.setup(GPIO_ECHO, GPIO.IN)                         # Ultrasonic Echo
-GPIO.setup(BUZZER, GPIO.OUT, initial = GPIO.HIGH)      # Buzzer 
+GPIO.setup(GPIO_TRIGGER, GPIO.OUT, initial = GPIO.LOW)       # Ultrasonic Trigger
+GPIO.setup(GPIO_ECHO, GPIO.IN, pull_up_down = GPIO.PUD_DOWN) # Ultrasonic Echo
+GPIO.setup(BUZZER, GPIO.OUT, initial = GPIO.HIGH)            # Buzzer 
 
 while True:
   d = get_distance()
