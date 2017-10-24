@@ -11,7 +11,7 @@ from sakspins import SAKSPins as PINS
 
 SAKS = SAKSHAT()
 
-def get_distance_once():
+def get_distance():
   '''
   Get distance from HC-SR04
   :return: int, distance in cm
@@ -26,12 +26,6 @@ def get_distance_once():
   while GPIO.input(PINS.UART_RXD) == GPIO.HIGH and stop - start < 0.1:
     stop = time.time()
   return int((stop - start) * 34300 / 2) # sound speed is 34300 cm/s
-
-def get_distance():
-  d = 0
-  while d < 8:
-    d = get_distance_once()
-  return d
 
 def buzz():
   '''
@@ -115,8 +109,8 @@ def init():
   '''
   Initialize the program
   '''
-  GPIO.setup(PINS.UART_TXD, GPIO.OUT, initial = GPIO.LOW)      # Ultrasonic Trigger
-  GPIO.setup(PINS.UART_RXD, GPIO.IN)                              # Ultrasonic Echo
+  GPIO.setup(PINS.UART_TXD, GPIO.OUT, initial = GPIO.LOW)          # Ultrasonic Trigger
+  GPIO.setup(PINS.UART_RXD, GPIO.IN, pull_up_down = GPIO.PUD_DOWN) # Ultrasonic Echo
   GPIO.remove_event_detect(PINS.TACT_LEFT)
   GPIO.add_event_detect(PINS.TACT_LEFT, GPIO.FALLING, callback = on_left_key, bouncetime = 500)
   signal.signal(signal.SIGUSR1, on_left_key)                  # SIGUSR1 as left key
